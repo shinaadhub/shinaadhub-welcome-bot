@@ -13,13 +13,6 @@ CHANNEL_USERNAME = "@official_shinaadhub"
 
 TELEGRAM_API = f"https://api.telegram.org/bot{BOT_TOKEN}"
 
-WELCOME_TEXT = (
-    "🎉 Welcome to ShinaAdHub!\n\n"
-    "We're happy to have you here. "
-    "Stay connected for updates, announcements and more. ❤️"
-)
-
-
 @app.route("/", methods=["GET"])
 def home():
     return "ShinaAdHub Welcome Bot is running!"
@@ -45,6 +38,23 @@ def webhook():
         and old_status in ("left", "kicked")
         and new_status in ("member", "administrator")
     ):
+        new_user = new_member.get("user", {})
+        username = new_user.get("username")
+
+        if username:
+            welcome_text = (
+                f"🎉 @{username}, welcome to ShinaAdHub!\n\n"
+                "We're happy to have you here. "
+                "Stay connected for updates, announcements and more. ❤️"
+            )
+        else:
+            first_name = new_user.get("first_name", "there")
+            welcome_text = (
+                f"🎉 {first_name}, welcome to ShinaAdHub!\n\n"
+                "We're happy to have you here. "
+                "Stay connected for updates, announcements and more. ❤️"
+            )
+
         keyboard = {
             "inline_keyboard": [[
                 {
@@ -58,7 +68,7 @@ def webhook():
             f"{TELEGRAM_API}/sendMessage",
             json={
                 "chat_id": CHANNEL_USERNAME,
-                "text": WELCOME_TEXT,
+                "text": welcome_text,
                 "reply_markup": keyboard
             },
             timeout=20
