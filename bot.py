@@ -1,21 +1,23 @@
 
 import os
 import logging
-from flask import Flask, request
 import requests
+from flask import Flask, request
 
 app = Flask(__name__)
 logging.basicConfig(level=logging.INFO)
 
 BOT_TOKEN = os.environ["BOT_TOKEN"]
+WEBHOOK_URL = os.environ["WEBHOOK_URL"]
 CHANNEL_USERNAME = "@official_shinaadhub"
+
+TELEGRAM_API = f"https://api.telegram.org/bot{BOT_TOKEN}"
+
 WELCOME_TEXT = (
     "🎉 Welcome to ShinaAdHub!\n\n"
     "We're happy to have you here. "
     "Stay connected for updates, announcements and more. ❤️"
 )
-
-TELEGRAM_API = f"https://api.telegram.org/bot{BOT_TOKEN}"
 
 
 @app.route("/", methods=["GET"])
@@ -67,6 +69,17 @@ def webhook():
 
 
 if __name__ == "__main__":
+    response = requests.post(
+        f"{TELEGRAM_API}/setWebhook",
+        json={
+            "url": WEBHOOK_URL,
+            "allowed_updates": ["chat_member"]
+        },
+        timeout=20
+    )
+    response.raise_for_status()
+    logging.info("Telegram webhook registered successfully")
+
     app.run(
         host="0.0.0.0",
         port=int(os.environ.get("PORT", 8080))
